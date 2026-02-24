@@ -1,21 +1,24 @@
-# Skill: Nexus-Safe (V1.4) - AI-Orchestrated SRE
+# Skill: Nexus-Safe (V1.3.0)
 
-This skill turns the Agent into an autonomous Site Reliability Engineer. It provides raw system access, but the decision-making logic is driven by the Agent's reasoning.
+Autonomous SRE agent for local system monitoring and controlled recovery.
 
-## 🧠 AI Integration
-The Agent should consult `AGENT_BRAIN.md` to learn the diagnostic protocols. This ensures that restarts are notProcedural, but **Logical**.
+## 🛡️ Hardened Security Policy
+- **No Network**: 100% local operation.
+- **Safe-by-default**: Restarts are disabled until `NEXUS_SAFE_ALLOW_RESTARTS=true` is set.
+- **Controlled Restarts**: Restricted to `NEXUS_SAFE_ALLOWED_DOCKER` and `NEXUS_SAFE_ALLOWED_PM2` lists.
+- **Log-First Enforcement**: You MUST call `/nexus-safe logs <service>` before attempting a recovery.
 
-## 🛡️ Security Policies
-- **Logs-First**: The `restart` command is blocked unless `logs` were read in the last 5 minutes.
-- **Allowlist**: Only services in `NEXUS_SAFE_ALLOWED_DOCKER/PM2` can be touched.
-- **Rate Limiting**: Hard-coded max restarts per hour.
+## ⚙️ Environment Variables
+- `NEXUS_SAFE_ALLOW_RESTARTS`: "true" to enable recovery.
+- `NEXUS_SAFE_ALLOWED_DOCKER`: Comma-separated (ex: "api,db").
+- `NEXUS_SAFE_ALLOWED_PM2`: Comma-separated (ex: "worker").
+- `NEXUS_SAFE_MAX_RESTARTS`: Max attempts in window (Default: 3).
 
-## 🚀 Usage
-- **/nexus-safe status** : Get system vitals.
-- **/nexus-safe logs <service>** : Required step before any recovery.
-- **/nexus-safe recover <service>** : Trigger a restart after diagnostic.
+## 🚀 Commands
+- **/nexus-safe status**: System vitals and service list.
+- **/nexus-safe logs <target>**: Fetch latest logs (required for recovery).
+- **/nexus-safe recover <target>**: Logic-based service restart.
 
-## ⚙️ Environment Configuration
-- `NEXUS_SAFE_ALLOW_RESTARTS`: "true"
-- `NEXUS_SAFE_ALLOWED_DOCKER`: "container1,container2"
-- `NEXUS_SAFE_ALLOWED_PM2`: "app1"
+## 📋 Installation
+1. `pip install psutil`
+2. Ensure `docker` and `pm2` are in PATH.
