@@ -1,24 +1,21 @@
-# Skill: Nexus-Safe (V1.3)
+# Skill: Nexus-Safe (V1.4) - AI-Orchestrated SRE
 
-Hardened SRE agent for local system monitoring and recovery.
+This skill turns the Agent into an autonomous Site Reliability Engineer. It provides raw system access, but the decision-making logic is driven by the Agent's reasoning.
 
-## 🛡️ Security Policies (Hard-coded)
-1. **Restart Denied by Default**: You must set `NEXUS_SAFE_ALLOW_RESTARTS=true` to enable recovery.
-2. **Allowlist Only**: You can ONLY restart services explicitly listed in `NEXUS_SAFE_ALLOWED_DOCKER` or `NEXUS_SAFE_ALLOWED_PM2`.
-3. **Log-First Enforcement**: Restarts are blocked unless you have checked the logs in the last 5 minutes (to ensure you've diagnosed the issue).
-4. **Rate Limiting**: Restarts are limited by a sliding window (default: 3 per hour).
-5. **No External Network**: Operation is strictly local.
+## 🧠 AI Integration
+The Agent should consult `AGENT_BRAIN.md` to learn the diagnostic protocols. This ensures that restarts are notProcedural, but **Logical**.
+
+## 🛡️ Security Policies
+- **Logs-First**: The `restart` command is blocked unless `logs` were read in the last 5 minutes.
+- **Allowlist**: Only services in `NEXUS_SAFE_ALLOWED_DOCKER/PM2` can be touched.
+- **Rate Limiting**: Hard-coded max restarts per hour.
+
+## 🚀 Usage
+- **/nexus-safe status** : Get system vitals.
+- **/nexus-safe logs <service>** : Required step before any recovery.
+- **/nexus-safe recover <service>** : Trigger a restart after diagnostic.
 
 ## ⚙️ Environment Configuration
-- `NEXUS_SAFE_ALLOW_RESTARTS`: "true" to enable restart capability.
-- `NEXUS_SAFE_ALLOWED_DOCKER`: Comma-separated list of container names (e.g., "api,db").
-- `NEXUS_SAFE_ALLOWED_PM2`: Comma-separated list of PM2 app names.
-- `NEXUS_SAFE_MAX_RESTARTS`: Max restarts in window (default: 3).
-
-## 🚀 Commands
-- **/nexus-safe status** : Full system and service status.
-- **/nexus-safe logs <target>** : Read logs for diagnosis (Required before restart).
-- **/nexus-safe recover <target>** : Restart an allowed service. Use `--force` to skip log-freshness check.
-
-## 📝 Audit
-All actions are logged in `~/.nexus-safe/audit.log`.
+- `NEXUS_SAFE_ALLOW_RESTARTS`: "true"
+- `NEXUS_SAFE_ALLOWED_DOCKER`: "container1,container2"
+- `NEXUS_SAFE_ALLOWED_PM2`: "app1"
