@@ -1,11 +1,15 @@
 {
   "name": "nexus-safe",
   "description": "Zero-Trust System Reliability Agent. Focuses on monitoring and recovery without external data exposure.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Jack",
   "entrypoint": "SKILL.md",
   "requirements": {
-    "binaries": ["docker", "pm2", "curl"],
+    "binaries": ["docker", "pm2"],
     "pythonPackages": ["psutil"]
+  },
+  "permissions": {
+    "filesystem": ["read"],
+    "commands": ["docker", "pm2"]
   }
 }

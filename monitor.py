@@ -2,6 +2,7 @@ import os
 import psutil
 import subprocess
 import json
+import sys
 from datetime import datetime
 
 def get_vitals():
@@ -14,7 +15,7 @@ def get_vitals():
 
 def get_docker():
     try:
-        res = subprocess.run(['docker', 'ps', '--format', '{{.Names}}|{{.Status}}|{{.State}}'], capture_output=True, text=True)
+        res = subprocess.run(['docker', 'ps', '-a', '--format', '{{.Names}}|{{.Status}}|{{.State}}'], capture_output=True, text=True)
         return [line.split('|') for line in res.stdout.strip().split('\n') if line]
     except:
         return []
@@ -27,11 +28,31 @@ def get_pm2():
     except:
         return []
 
+def get_logs(service_name, lines=50):
+    """Local log retrieval for Docker or PM2."""
+    try:
+        # Check if it's a docker container first
+        docker_check = subprocess.run(['docker', 'inspect', service_name], capture_output=True)
+        if docker_check.returncode == 0:
+            res = subprocess.run(['docker', 'logs', '--tail', str(lines), service_name], capture_output=True, text=True)
+            return res.stdout + res.stderr
+        # Otherwise try PM2
+        res = subprocess.run(['pm2', 'logs', service_name, '--lines', str(lines), '--nostream'], capture_output=True, text=True)
+        return res.stdout
+    except Exception as e:
+        return f"Error retrieving logs for {service_name}: {str(e)}"
+
 if __name__ == "__main__":
-    report = {
-        "timestamp": datetime.now().isoformat(),
-        "vitals": get_vitals(),
-        "docker": get_docker(),
-        "pm2": get_pm2()
-    }
-    print(json.dumps(report, indent=2))
+    action = sys.argv[1] if len(sys.argv) > 1 else "status"
+    
+    if action == "status":
+        report = {
+            "timestamp": datetime.now().isoformat(),
+            "vitals": get_vitals(),
+            "docker": get_docker(),
+            "pm2": get_pm2()
+        }
+        print(json.dumps(report, indent=2))
+    elif action == "logs":
+        service = sys.argv[2] if len(sys.argv) > 2 else ""
+        print(get_logs(service))
