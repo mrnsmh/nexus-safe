@@ -1,24 +1,22 @@
 # Skill: Nexus-Safe (V1.3.0)
 
-Autonomous SRE agent for local system monitoring and controlled recovery.
+Autonomous local System Reliability Agent for OpenClaw.
 
-## 🛡️ Hardened Security Policy
-- **No Network**: 100% local operation.
-- **Safe-by-default**: Restarts are disabled until `NEXUS_SAFE_ALLOW_RESTARTS=true` is set.
-- **Controlled Restarts**: Restricted to `NEXUS_SAFE_ALLOWED_DOCKER` and `NEXUS_SAFE_ALLOWED_PM2` lists.
-- **Log-First Enforcement**: You MUST call `/nexus-safe logs <service>` before attempting a recovery.
+## 🛡️ Privacy & Security Policy
+- **Runtime Privacy**: Strictly 100% local. No metrics, logs, or system data ever leave your server. No outbound network calls are performed by the script.
+- **Setup Notice**: An internet connection is required **only during initial setup** to install the `psutil` dependency via `pip`.
+- **Safe-by-default**: Recovery actions are locked until explicitly enabled.
 
-## ⚙️ Environment Variables
-- `NEXUS_SAFE_ALLOW_RESTARTS`: "true" to enable recovery.
-- `NEXUS_SAFE_ALLOWED_DOCKER`: Comma-separated (ex: "api,db").
-- `NEXUS_SAFE_ALLOWED_PM2`: Comma-separated (ex: "worker").
-- `NEXUS_SAFE_MAX_RESTARTS`: Max attempts in window (Default: 3).
+## 📋 Capabilities
+- **/nexus-safe status** : Real-time system health (CPU, RAM, Disk, Load).
+- **/nexus-safe logs <service>** : Diagnostic log retrieval (Docker/PM2).
+- **/nexus-safe recover <service>** : Policy-controlled service restart.
 
-## 🚀 Commands
-- **/nexus-safe status**: System vitals and service list.
-- **/nexus-safe logs <target>**: Fetch latest logs (required for recovery).
-- **/nexus-safe recover <target>**: Logic-based service restart.
+## ⚙️ Logic & Enforcement
+- **Allowlist Required**: Restarts only work for services in `NEXUS_SAFE_ALLOWED_DOCKER/PM2`.
+- **Logs-First Policy**: The tool blocks recovery if logs haven't been reviewed within the last 5 minutes.
+- **Rate Limiting**: Sliding window protection (Max 3 restarts per hour).
 
-## 📋 Installation
+## 🚀 Installation
 1. `pip install psutil`
-2. Ensure `docker` and `pm2` are in PATH.
+2. Ensure `docker` and `pm2` are installed and in your PATH.
