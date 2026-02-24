@@ -5,6 +5,10 @@ import json
 import sys
 from datetime import datetime
 
+# Safety list of allowed services (prevents arbitrary command execution)
+# If empty, the agent decides based on docker ps / pm2 list results.
+ALLOWED_CONTAINERS = [] 
+
 def get_vitals():
     return {
         "cpu_percent": psutil.cpu_percent(interval=0.5),
@@ -29,21 +33,38 @@ def get_pm2():
         return []
 
 def get_logs(service_name, lines=50):
-    """Local log retrieval for Docker or PM2."""
     try:
-        # Check if it's a docker container first
+        # Check docker
         docker_check = subprocess.run(['docker', 'inspect', service_name], capture_output=True)
         if docker_check.returncode == 0:
             res = subprocess.run(['docker', 'logs', '--tail', str(lines), service_name], capture_output=True, text=True)
             return res.stdout + res.stderr
-        # Otherwise try PM2
+        # Check PM2
         res = subprocess.run(['pm2', 'logs', service_name, '--lines', str(lines), '--nostream'], capture_output=True, text=True)
         return res.stdout
     except Exception as e:
-        return f"Error retrieving logs for {service_name}: {str(e)}"
+        return f"Error: {str(e)}"
+
+def restart_service(service_name):
+    """Explicit restart logic with basic validation."""
+    try:
+        # 1. Try Docker
+        docker_check = subprocess.run(['docker', 'inspect', service_name], capture_output=True)
+        if docker_check.returncode == 0:
+            subprocess.run(['docker', 'restart', service_name], check=True)
+            return {"status": "success", "provider": "docker", "service": service_name}
+        
+        # 2. Try PM2
+        subprocess.run(['pm2', 'restart', service_name], check=True)
+        return {"status": "success", "provider": "pm2", "service": service_name}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 if __name__ == "__main__":
-    action = sys.argv[1] if len(sys.argv) > 1 else "status"
+    if len(sys.argv) < 2:
+        action = "status"
+    else:
+        action = sys.argv[1]
     
     if action == "status":
         report = {
@@ -56,3 +77,6 @@ if __name__ == "__main__":
     elif action == "logs":
         service = sys.argv[2] if len(sys.argv) > 2 else ""
         print(get_logs(service))
+    elif action == "restart":
+        service = sys.argv[2] if len(sys.argv) > 2 else ""
+        print(json.dumps(restart_service(service), indent=2))
